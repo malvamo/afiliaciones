@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { loadUploadedFile } from "@/lib/storage";
 import { DocumentStorageType } from "@prisma/client";
+import type { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
@@ -10,10 +11,10 @@ function contentDispositionFilename(name: string): string {
 }
 
 export async function GET(
-  _request: Request,
-  { params }: { params: { id: string } }
+  _request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await context.params;
 
   const doc = await prisma.affiliationDocument.findUnique({ where: { id } });
   if (!doc) return new Response("Not found", { status: 404 });
