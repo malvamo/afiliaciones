@@ -1,16 +1,11 @@
 import "dotenv/config";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { InsuranceCategory, PrismaClient } from "@prisma/client";
 
-const datasourceUrl = process.env.DATABASE_URL;
-if (!datasourceUrl) {
-  throw new Error("DATABASE_URL is missing (expected in web/.env)");
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL is missing");
 }
 
-const authToken = process.env.LIBSQL_AUTH_TOKEN || undefined;
-
-const adapter = new PrismaLibSql({ url: datasourceUrl, authToken });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 type ClinicSeed = { code: string; name: string };
 type InsuranceSeed = { name: string; category: InsuranceCategory; sortOrder: number };

@@ -1,11 +1,10 @@
-import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
-import { optionalEnv, requireEnv } from "@/lib/env";
+import { requireEnv } from "@/lib/env";
 
-const url = requireEnv("DATABASE_URL");
-const authToken = optionalEnv("LIBSQL_AUTH_TOKEN") ?? undefined;
-const adapter = new PrismaLibSql({ url, authToken });
+const connectionString = requireEnv("DATABASE_URL");
+const adapter = new PrismaPg({ connectionString });
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 

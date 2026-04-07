@@ -5,7 +5,7 @@
 Crear `web/.env` (no commitear). Podes copiar `web/.env.example`.
 
 Minimo para correr la app:
-- `DATABASE_URL="file:./dev.db"`
+- `DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DB?sslmode=require"`
 
 Para emails:
 - `SMTP_HOST=smtp.gmail.com`

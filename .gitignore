@@ -36,6 +36,16 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local MCP / agent config
+.mcp.json
+opencode.json
+.cursor/
+.codex/
+.gemini/
+.zed/
+config/mcporter.json
+.vscode/mcp.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
