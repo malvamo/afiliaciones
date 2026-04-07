@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum InsuranceCategory {
+  MEDICAID
+  PPO
+}
+
+enum AffiliationStatus {
+  NOT_STARTED
+  IN_PROCESS
+  ACTIVE
+  REJECTED
+  NOT_POSSIBLE
+}
+
+enum DocumentStorageType {
+  URL
+  FILE
+}
+
+enum RenewalStatus {
+  NOT_STARTED
+  STARTED
+  SUBMITTED
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+model Clinic {
+  id        String        @id @default(cuid())
+  code      String        @unique
+  name      String
+  active    Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  affiliations Affiliation[]
+}
+
+model Insurance {
+  id                  String            @id @default(cuid())
+  name                String            @unique
+  category            InsuranceCategory
+  sortOrder           Int               @default(0)
+  active              Boolean           @default(true)
+  termMonths          Int               @default(12)
+  renewalLeadMonths   Int               @default(3)
+  activationLeadMonths Int              @default(3)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  affiliations Affiliation[]
+  specialistInsurances SpecialistInsurance[]
+
+  @@index([category, sortOrder])
+}
+
+model Specialist {
+  id        String      @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  active    Boolean     @default(true)
+  notes     String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  affiliations Affiliation[]
+  documents    SpecialistDocument[]
+  insurances   SpecialistInsurance[]
+
+  @@index([lastName, firstName])
+}
+
+model SpecialistInsurance {
+  id           String   @id @default(cuid())
+  specialistId String
+  insuranceId  String
+
+  firstRequestedAt DateTime?
+  firstActivatedAt DateTime?
+  notes            String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  insurance  Insurance  @relation(fields: [insuranceId], references: [id], onDelete: Cascade)
+
+  @@unique([specialistId, insuranceId])
+  @@index([insuranceId])
+}
+
+model SpecialistDocument {
+  id           String     @id @default(cuid())
+  specialistId String
+  originalName String
+  storedPath   String
+  storageType  DocumentStorageType @default(URL)
+  mimeType     String?
+  description  String?
+  createdAt    DateTime   @default(now())
+
+  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+
+  @@index([specialistId, createdAt])
+}
+
+model Affiliation {
+  id           String            @id @default(cuid())
+  specialistId String
+  clinicId     String
+  insuranceId  String
+  status       AffiliationStatus @default(NOT_STARTED)
+
+  requestedAt DateTime?
+  activatedAt DateTime?
+  expiresAt   DateTime?
+  notes       String?
+
+  renewalStatus    RenewalStatus @default(NOT_STARTED)
+  renewalStartedAt DateTime?
+  renewalNotes     String?
+
+  lastNotifiedRenewalAt   DateTime?
+  lastNotifiedRenewalStartAt DateTime?
+  lastNotifiedRenewalEscalationAt DateTime?
+  lastNotifiedActivationAt DateTime?
+  lastNotifiedActivationEscalationAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  specialist Specialist @relation(fields: [specialistId], references: [id], onDelete: Cascade)
+  clinic     Clinic     @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  insurance  Insurance  @relation(fields: [insuranceId], references: [id], onDelete: Cascade)
+  documents  AffiliationDocument[]
+
+  @@unique([specialistId, clinicId, insuranceId])
+  @@index([clinicId, insuranceId])
+  @@index([insuranceId, status])
+  @@index([status, expiresAt])
+}
+
+
+model AffiliationDocument {
+  id            String   @id @default(cuid())
+  affiliationId String
+  originalName  String
+  storedPath    String
+  storageType   DocumentStorageType @default(URL)
+  mimeType      String?
+  description   String?
+  createdAt     DateTime @default(now())
+
+  affiliation Affiliation @relation(fields: [affiliationId], references: [id], onDelete: Cascade)
+
+  @@index([affiliationId, createdAt])
+}
